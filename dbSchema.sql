@@ -43,12 +43,13 @@ CREATE TABLE has_tags(
 );
 
 CREATE TABLE photos(
-    id TEXT UNIQUE NOT NULL PRIMARY KEY
+    id SERIAL UNIQUE NOT NULL PRIMARY KEY,
+    path TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE contains_photos(
     todo_id INTEGER NOT NULL,
-    photo_id TEXT NOT NULL,
+    photo_id INTEGER NOT NULL,
     PRIMARY KEY (todo_id, photo_id),
     FOREIGN KEY(todo_id) REFERENCES todos(id),
     FOREIGN KEY(photo_id) REFERENCES photos(id)

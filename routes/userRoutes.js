@@ -1,10 +1,11 @@
+import path from 'path';
 import express from 'express';
 import multer from 'multer';
 import { login, signup } from '../controllers/authController.js';
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/profilePics')
+        cb(null, path.join('uploads', 'profilePics'))
     },
     filename: function (req, file, cb) {
         const safeOriginal = file.originalname.replace(/[^a-zA-Z0-9.]/g, '-')

@@ -2,9 +2,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import AppError from "../models/appError.js";
 import sql from "../db.js";
+import { convertProcessSignalToExitCode } from "util";
 
 export const signup = async (req, res, next) => {
     const { username, email, password } = req.body;
+    const { path } = req.file;
 
     if (!username || !email || !password) {
         return next(new AppError(400, 'One or more missing fields'))
@@ -12,9 +14,23 @@ export const signup = async (req, res, next) => {
     // TODO: validate email
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await sql`INSERT INTO users(username, email, password) values(${username}, ${email},${hashedPassword})`;
+    const user = {
+        username,
+        email,
+        password: hashedPassword,
+        profile_pic: path
+    };
 
-    res.status(201).json({ status: 'success', message: 'User created' });
+    Object.keys(user).forEach(key => user[key] === undefined ? delete user[key] : {});
+
+    const insertion = await sql`INSERT INTO users ${sql(user)} RETURNING *`;
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            user: insertion[0]
+        }
+    });
 };
 
 export const login = async (req, res, next) => {
