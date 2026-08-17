@@ -1,15 +1,19 @@
 import express from 'express';
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 import sql from './db.js';
-import userRouter from './routes/userRoutes.js'
+import userRouter from './routes/userRoutes.js';
+import todoRouter from './routes/todoRoutes.js';
 import globalErrorHandler from './controllers/errorController.js';
 
 const app = express();
-const PORT = 3000 || process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cookieParser());
+
 app.use((req, res, next) => {
     console.log('--------------------');
     console.log('URL REQUESTED ' + req.originalUrl)
@@ -18,6 +22,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/api/v1/users', userRouter)
+app.use('/api/v1/todos', todoRouter)
 
 app.use(globalErrorHandler)
 
