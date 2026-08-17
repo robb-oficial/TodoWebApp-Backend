@@ -1,4 +1,5 @@
 /node_modules
 /uploads/profilePics/*
+/uploads/todoPhotos/*
 
 .env
