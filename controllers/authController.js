@@ -18,7 +18,7 @@ export const signup = async (req, res, next) => {
         username,
         email,
         password: hashedPassword,
-        profile_pic: path
+        profile_pic: path.replace(/\\/g, '/')
     };
 
     Object.keys(user).forEach(key => user[key] === undefined ? delete user[key] : {});
