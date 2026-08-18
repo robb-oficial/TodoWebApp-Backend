@@ -1,7 +1,7 @@
 import path from "path";
 import express from 'express';
 import multer from 'multer';
-import { createTodo, getSingleTodo, getTodos } from '../controllers/todoController.js';
+import { createTodo, deleteTodo, editTodo, getSingleTodo, getTodos } from '../controllers/todoController.js';
 import { verifyJWT } from '../controllers/authController.js';
 
 const storage = multer.diskStorage({
@@ -17,12 +17,14 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({storage})
+const upload = multer({ storage })
 
 const router = express.Router();
 
 router.get('/', verifyJWT, getTodos);
 router.post('/', verifyJWT, upload.array('todo-photos'), createTodo);
 router.get('/:id', verifyJWT, getSingleTodo);
+router.patch('/:id', verifyJWT, upload.array('todo-photos'), editTodo);
+router.delete('/:id', verifyJWT, deleteTodo);
 
 export default router;
