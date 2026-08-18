@@ -131,11 +131,35 @@ export const deleteTodo = async (req, res, next) => {
         return next(new AppError(400, 'Todo Id must be an integer'));
     }
 
-    const todo = await sql`SELECT * FROM todos WHERE id = ${todoId} AND user_id = ${userId} AND is_deleted = false`;
-    if (todo.count === 0) {
+    const deletion = await sql`
+        UPDATE todos SET is_deleted = true 
+        WHERE id = ${todoId} AND user_id = ${userId} AND is_deleted = false
+        RETURNING *
+    `;
+    if (deletion.count === 0) {
         return next(new AppError(404, 'Target todo not found'));
     }
 
-    const deletion = await sql`UPDATE todos SET is_deleted = true WHERE id = ${todoId} AND user_id = ${userId}`;
+    res.status(204).end();
+};
+
+export const completeTodo = async (req, res, next) => {
+    const userId = req.user.id;
+    const todoId = parseInt(req.params.id);
+
+    if (isNaN(todoId)) {
+        return next(new AppError(400, 'Todo Id must be an integer'));
+    }
+
+    const complete = await sql`
+        UPDATE todos SET status = 'done' 
+        WHERE id = ${todoId} AND user_id = ${userId} AND is_deleted = false
+        RETURNING *
+    `;
+
+    if (complete.count === 0) {
+        return next(new AppError(400, 'Target todo not found'));
+    }
+
     res.status(204).end();
 };
