@@ -16,7 +16,7 @@ app.use(cookieParser());
 
 app.use((req, res, next) => {
     console.log('--------------------');
-    console.log('URL REQUESTED ' + req.originalUrl)
+    console.log('URL REQUESTED '+ req.method+ ' s' + req.originalUrl)
     console.log('--------------------');
     next()
 })

@@ -51,13 +51,20 @@ export const login = async (req, res, next) => {
         if (err) {
             return next(new AppError(500, 'Error creating token'));
         }
-        // TODO: add secure attribute and maybe sameSite
+        // TODO: add secure attribute and maybe sameSite. Then update logout
         res.cookie('jwt_token', token, {
             httpOnly: true,
             maxAge: 48 * 60 * 60 * 1000
         });
-        return res.json({ status: 'success', message: 'sent token' });
+        return res.json({ status: 'success', message: 'token sent' });
     });
+};
+
+export const logout = (req, res, next) => {
+    res.clearCookie('jwt_token', {
+        httpOnly: true
+    });
+    res.status(204).end();
 };
 
 export const verifyJWT = (req, res, next) => {
@@ -72,4 +79,4 @@ export const verifyJWT = (req, res, next) => {
         req.user = data;
         next()
     });
-}
+};

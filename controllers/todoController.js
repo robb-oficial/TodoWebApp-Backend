@@ -3,6 +3,15 @@ import AppError from "../models/appError.js";
 
 export const getTodos = async (req, res, next) => {
     const userId = req.user.id;
+
+    await sql`
+        UPDATE todos
+        SET status = 'expired'
+        WHERE status = 'pending'
+        AND is_deleted = false
+        AND deadline IS NOT NULL
+        AND deadline <= NOW()
+    `;
     const todos = await sql`
         SELECT id, title, content, priority, status, deadline, created_at
         FROM todos
@@ -21,6 +30,17 @@ export const getSingleTodo = async (req, res, next) => {
     if (isNaN(todoId)) {
         return next(new AppError(400, 'Todo Id must be an integer'));
     }
+
+    await sql`
+        UPDATE todos
+        SET status = 'expired'
+        WHERE status = 'pending'
+        AND id = ${todoId}
+        AND user_id = ${userId}
+        AND is_deleted = false
+        AND deadline IS NOT NULL
+        AND deadline <= NOW()
+    `;
 
     const todo = await sql`SELECT * FROM todos WHERE id = ${todoId} AND user_id = ${userId} AND is_deleted = false`;
     if (todo.count === 0) {

@@ -1,7 +1,8 @@
 import path from 'path';
 import express from 'express';
 import multer from 'multer';
-import { login, signup } from '../controllers/authController.js';
+import { login, logout, signup, verifyJWT } from '../controllers/authController.js';
+import { deleteUser, editUser, getUser } from '../controllers/userController.js';
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -21,5 +22,11 @@ const router = express.Router();
 
 router.post('/signup', upload.single('profile-pic'), signup);
 router.post('/login', login);
+router.post('/logout', verifyJWT, logout);
+
+
+router.get('/', verifyJWT, getUser);
+router.patch('/', verifyJWT, upload.single('profile-pic'), editUser);
+router.delete('/delete', verifyJWT, deleteUser);
 
 export default router;
