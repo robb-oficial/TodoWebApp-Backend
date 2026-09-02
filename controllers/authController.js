@@ -2,11 +2,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import AppError from "../models/appError.js";
 import sql from "../db.js";
-import { convertProcessSignalToExitCode } from "util";
 
 export const signup = async (req, res, next) => {
     const { username, email, password } = req.body;
-    const { path } = req.file;
+    let path;
+    if (req.file) {
+        path = req.file.path;
+    }
 
     if (!username || !email || !password) {
         return next(new AppError(400, 'One or more missing fields'))
@@ -18,7 +20,7 @@ export const signup = async (req, res, next) => {
         username,
         email,
         password: hashedPassword,
-        profile_pic: path.replace(/\\/g, '/')
+        profile_pic: path === undefined? undefined : path.replace(/\\/g, '/')
     };
 
     Object.keys(user).forEach(key => user[key] === undefined ? delete user[key] : {});

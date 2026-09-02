@@ -66,7 +66,10 @@ export const getSingleTodo = async (req, res, next) => {
 export const createTodo = async (req, res, next) => {
     const userId = req.user.id;
     const { title, content, priority, deadline } = req.body;
-    const photos = req.files;
+    let photos;
+    if(req.files.length){
+        photos = req.files
+    }
 
     if (!title || !content || !priority) {
         return next(new AppError(400, 'Missing any of the fields: title, content, priority'));
@@ -86,7 +89,7 @@ export const createTodo = async (req, res, next) => {
 
     let data = { newTodo: insertion[0] }
     // error
-    if (photos.length) {
+    if (photos) {
         const paths = photos.map(photo => ({ path: photo.path.replace(/\\/g, '/') }));
         const photosInserted = await sql`INSERT INTO photos ${sql(paths)} RETURNING *`;
 

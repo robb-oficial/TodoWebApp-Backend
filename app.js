@@ -1,9 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 dotenv.config();
 
-import sql from './db.js';
 import userRouter from './routes/userRoutes.js';
 import todoRouter from './routes/todoRoutes.js';
 import globalErrorHandler from './controllers/errorController.js';
@@ -11,12 +11,13 @@ import globalErrorHandler from './controllers/errorController.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
     console.log('--------------------');
-    console.log('URL REQUESTED '+ req.method+ ' s' + req.originalUrl)
+    console.log('URL REQUESTED ' + req.method + ' ' + req.originalUrl)
     console.log('--------------------');
     next()
 })
