@@ -20,12 +20,20 @@ export const signup = async (req, res, next) => {
         username,
         email,
         password: hashedPassword,
-        profile_pic: path === undefined? undefined : path.replace(/\\/g, '/')
+        profile_pic: path === undefined ? undefined : path.replace(/\\/g, '/')
     };
 
     Object.keys(user).forEach(key => user[key] === undefined ? delete user[key] : {});
-
-    const insertion = await sql`INSERT INTO users ${sql(user)} RETURNING *`;
+    let insertion;
+    try {
+        insertion = await sql`INSERT INTO users ${sql(user)} RETURNING *`;
+    } catch (e) {
+        if (e.code === '23505') {
+            const regex = /\(([^)]+)\)/g;
+            const results = [...e.detail.matchAll(regex)].map(match => match[1]);
+            return next(new AppError(409, `That ${results[0]} is already taken`));
+        }
+    }
 
     res.status(201).json({
         status: 'success',
@@ -48,6 +56,7 @@ export const login = async (req, res, next) => {
     if (!passwordsMatch) {
         return next(new AppError(401, 'Incorrect password'));
     }
+
     const jwtPayload = { id: storedUser[0].id };
     jwt.sign(jwtPayload, process.env.JWT_SECRET_KEY, { expiresIn: '2d' }, (err, token) => {
         if (err) {
@@ -71,6 +80,7 @@ export const logout = (req, res, next) => {
 
 export const verifyJWT = (req, res, next) => {
     const token = req.cookies['jwt_token'];
+
     if (!token) {
         return next(new AppError(401, 'You need to login to access this route'));
     }

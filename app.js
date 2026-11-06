@@ -11,7 +11,10 @@ import globalErrorHandler from './controllers/errorController.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:4200',
+    credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -20,10 +23,12 @@ app.use((req, res, next) => {
     console.log('URL REQUESTED ' + req.method + ' ' + req.originalUrl)
     console.log('--------------------');
     next()
-})
+});
 
-app.use('/api/v1/users', userRouter)
-app.use('/api/v1/todos', todoRouter)
+app.use('/uploads', express.static('uploads'));
+
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/todos', todoRouter);
 
 app.use(globalErrorHandler)
 

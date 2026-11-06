@@ -1,3 +1,4 @@
+import { parse } from "dotenv";
 import sql from "../db.js";
 import AppError from "../models/appError.js";
 
@@ -47,6 +48,7 @@ export const getSingleTodo = async (req, res, next) => {
         return next(new AppError(404, 'Todo not found'));
     }
     let data = { todo: todo[0] };
+
     const queriedPhotos = await sql`
         SELECT path from todos AS t 
         JOIN contains_photos ON t.id = contains_photos.todo_id 
@@ -67,8 +69,13 @@ export const createTodo = async (req, res, next) => {
     const userId = req.user.id;
     const { title, content, priority, deadline } = req.body;
     let photos;
-    if(req.files.length){
+    if (req.files.length) {
         photos = req.files
+    }
+
+    let parsedDate;
+    if (deadline) {
+        parsedDate = new Date(deadline)
     }
 
     if (!title || !content || !priority) {
@@ -79,7 +86,7 @@ export const createTodo = async (req, res, next) => {
         title,
         content,
         priority: parseInt(priority),
-        deadline,
+        deadline: parsedDate,
         user_id: userId
     };
 
@@ -110,6 +117,11 @@ export const editTodo = async (req, res, next) => {
     const { title, content, priority, deadline } = req.body;
     const photos = req.files;
 
+    let parsedDate = undefined;
+    if (deadline) {
+        parsedDate = new Date(deadline);
+    }
+
     if (isNaN(todoId)) {
         return next(new AppError(400, 'Todo Id must be an integer'));
     }
@@ -118,11 +130,16 @@ export const editTodo = async (req, res, next) => {
         title,
         content,
         priority: parseInt(priority),
-        deadline
+        deadline: parsedDate
     };
 
     Object.keys(updatedTodo).forEach(key => updatedTodo[key] === undefined ? delete updatedTodo[key] : {});
     const columnsToUpdate = Object.keys(updatedTodo);
+    if (!deadline) {
+        await sql`
+        UPDATE todos SET deadline = NULL where id = ${todoId} AND user_id = ${userId};
+        `
+    }
     const update = await sql`
         UPDATE todos SET ${sql(updatedTodo, columnsToUpdate)}
         WHERE id = ${todoId} AND user_id = ${userId} RETURNING *
@@ -185,4 +202,16 @@ export const completeTodo = async (req, res, next) => {
     }
 
     res.status(204).end();
+};
+
+export const todoAnalytics = async (req, res, next) => {
+    const userId = req.user.id;
+    const todosData = await sql`SELECT * from todos WHERE user_id = ${userId}`;
+    res.status(200).json({
+        status: 'success',
+        data: {
+            data: todosData,
+            length: todosData.length
+        }
+    });
 };
